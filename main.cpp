@@ -5,6 +5,7 @@ using namespace std;
 
 enum GameState {
     TITLE,
+    PAUSE,
     GAME1P,
     GAME2P
 };
@@ -15,9 +16,9 @@ const int screenHeight = 800;
 class Ball {
     public:
         float x, y, radius, speedX, speedY;
-
-        float delayTimer = 0.5;
-        float delayDuration = 0.5;
+  
+        const float delayDuration = 0.5f;
+        float delayTimer = 0.5f;
 
         void Draw() {
             DrawCircle(x, y, radius, WHITE);
@@ -117,6 +118,7 @@ class Button {
 int player1Score = 0;
 int player2Score = 0;
 GameState gameState = TITLE;
+GameState savedGameState;
 
 Ball ball;
 Paddle player1, player2;
@@ -125,6 +127,12 @@ CpuPaddle cpu;
 Button startButton1P(300, 60, LIGHTGRAY, "Single Player", screenWidth / 2 - 150, screenHeight * 0.4);
 Button startButton2P(300, 60, LIGHTGRAY, "Multiplayer", screenWidth / 2 - 150, screenHeight * 0.5);
 Button exitButton(300, 60, LIGHTGRAY, "Exit Game", screenWidth / 2 - 150, screenHeight * 0.6);
+
+Button continueButton(300, 60, LIGHTGRAY, "Continue", screenWidth / 2 - 150, screenHeight * 0.4);
+Button returnButton(300, 60, LIGHTGRAY, "Return to Menu", screenWidth / 2 - 150, screenHeight * 0.5);
+Button exitButton2(300, 60, LIGHTGRAY, "Exit Game", screenWidth / 2 - 150, screenHeight * 0.6);
+
+Button pauseButton(300, 20, LIGHTGRAY, "Pause", screenWidth / 2 - 150, screenHeight * 0.1);
 
 void DrawTitleScreen() {
     const char *titleText = "Pong Game";
@@ -136,6 +144,18 @@ void DrawTitleScreen() {
     startButton1P.Draw();
     startButton2P.Draw();
     exitButton.Draw();
+}
+
+void DrawPauseScreen() {
+    const char *titleText = "Game Paused";
+    float titleX = screenWidth / 2 - MeasureText(titleText, 30) / 2;
+    float titleY = screenHeight / 4 + 30;
+
+    DrawRectangle(screenWidth / 4, screenHeight / 4, screenWidth / 2, screenHeight / 2, GRAY);
+    DrawText(titleText, titleX, titleY, 30, WHITE);
+    continueButton.Draw();
+    returnButton.Draw();
+    exitButton2.Draw();
 }
 
 void Logic() {
@@ -162,6 +182,27 @@ void Logic() {
         if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player2.x, player2.y, player2.width, player2.height})) {
             ball.speedX *= -1;
         }
+    }
+}
+
+void ResetGame() {
+    player1Score = 0;
+    player2Score = 0;
+
+    ball.x = screenWidth / 2;
+    ball.y = screenHeight / 2;
+    ball.delayTimer = 0.5;
+
+    player1.x = screenWidth - player1.width - 10;
+    player1.y = screenHeight / 2 - player1.height / 2;
+
+    if (gameState == GAME1P) {
+        cpu.x = 10;
+        cpu.y = screenHeight / 2 - cpu.height / 2;
+    }
+    if (gameState == GAME2P) {
+        player2.x = 10;
+        player2.y = screenHeight / 2 - player2.height / 2;
     }
 }
 
@@ -200,29 +241,21 @@ int main() {
     while (WindowShouldClose() == false) {
         BeginDrawing();
 
-        // return to previous page
-        if (IsKeyPressed(KEY_TAB)) {
-            if (gameState != TITLE) {
-                player1Score = 0;
-                player2Score = 0;
+        if (gameState != TITLE && gameState != PAUSE && IsKeyPressed(KEY_TAB)) {
+            savedGameState = gameState;
+            gameState = PAUSE;
+        }
 
-                ball.x = screenWidth / 2;
-                ball.y = screenHeight / 2;
-                ball.delayTimer = 0.5;
-
-                player1.x = screenWidth - player1.width - 10;
-                player1.y = screenHeight / 2 - player1.height / 2;
-
-                if (gameState == GAME1P) {
-                    cpu.x = 10;
-                    cpu.y = screenHeight / 2 - cpu.height / 2;
-                }
-                if (gameState == GAME2P) {
-                    player2.x = 10;
-                    player2.y = screenHeight / 2 - player2.height / 2;
-                }
+        if (gameState == PAUSE) {
+            DrawPauseScreen();  
+            if (continueButton.IsPressed()) {
+                gameState = savedGameState;
+            }
+            if (returnButton.IsPressed()) {
+                ResetGame();
                 gameState = TITLE;
-            } else {
+            }
+            if (exitButton2.IsPressed()) {  
                 CloseWindow();
                 return 0;
             }
@@ -240,7 +273,7 @@ int main() {
                 CloseWindow();
                 return 0;
             }
-        } else {
+        } else if (gameState == GAME1P || gameState == GAME2P) {
             ball.Update();
             player1.Update(KEY_UP, KEY_DOWN);
             if (gameState == GAME1P) {
