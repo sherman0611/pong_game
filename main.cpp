@@ -16,11 +16,20 @@ class Ball {
     public:
         float x, y, radius, speedX, speedY;
 
+        float resetDelayTimer = 0.5f;
+        float resetDelayDuration = 0.5f;
+
         void Draw() {
             DrawCircle(x, y, radius, WHITE);
         }
 
         void Update() {
+            // countdown
+            if (resetDelayTimer > 0.0f) {
+                resetDelayTimer -= GetFrameTime();
+                return;
+            }
+
             // move ball
             x += speedX;
             y += speedY;
@@ -38,6 +47,8 @@ class Ball {
             int speedChoices[2] = {-1, 1};
             speedX *= speedChoices[GetRandomValue(0, 1)];
             speedY *= speedChoices[GetRandomValue(0, 1)];
+
+            resetDelayTimer = resetDelayDuration;
         }
 };
 
@@ -165,23 +176,26 @@ int main() {
     ball.speedX = speedChoices[GetRandomValue(0, 1)];
     ball.speedY = speedChoices[GetRandomValue(0, 1)];
 
-    player1.width = 25;
-    player1.height = 170;
+    float paddleWidth = 25;
+    float paddleHeight = 170;
+    
+    player1.width = paddleWidth;
+    player1.height = paddleHeight;
     player1.x = screenWidth - player1.width - 10;
     player1.y = screenHeight / 2 - player1.height / 2;
     player1.speed = 9;
 
-    // cpu.width = 25;
-    // cpu.height = 170;
-    // cpu.x = 10;
-    // cpu.y = screenHeight / 2 - cpu.height / 2;
-    // cpu.speed = 8;
+    cpu.width = paddleWidth;
+    cpu.height = paddleHeight;
+    cpu.x = 10;
+    cpu.y = screenHeight / 2 - cpu.height / 2;
+    cpu.speed = 8;
 
-    // player2.width = 25;
-    // player2.height = 170;
-    // player2.x = 10;
-    // player2.y = screenHeight / 2 - player1.height / 2;
-    // player2.speed = 9;
+    player2.width = paddleWidth;
+    player2.height = paddleHeight;
+    player2.x = 10;
+    player2.y = screenHeight / 2 - player2.height / 2;
+    player2.speed = 9;
 
     while (WindowShouldClose() == false) {
         BeginDrawing();
@@ -199,23 +213,11 @@ int main() {
                 return 0;
             }
         } else {
-            // update objects
             ball.Update();
             player1.Update(KEY_UP, KEY_DOWN);
             if (gameState == GAME1P) {
-                cpu.height = 170;
-                cpu.x = 10;
-                cpu.y = screenHeight / 2 - cpu.height / 2;
-                cpu.speed = 8;
-
                 cpu.Update(ball.y);
             } else if (gameState == GAME2P) {
-                player2.width = 25;
-                player2.height = 170;
-                player2.x = 10;
-                player2.y = screenHeight / 2 - player1.height / 2;
-                player2.speed = 9;
-
                 player2.Update(KEY_W, KEY_S);
             }
 
