@@ -14,8 +14,7 @@ const int screenHeight = 800;
 
 class Ball {
     public:
-        float x, y;
-        int radius, speedX, speedY;
+        float x, y, radius, speedX, speedY;
 
         void Draw() {
             DrawCircle(x, y, radius, WHITE);
@@ -60,11 +59,11 @@ class Paddle {
             DrawRectangleRounded(Rectangle{x, y, width, height}, 0.8, 0, WHITE);
         }
 
-        void Update() {
-            if (IsKeyDown(KEY_UP)) {
+        void Update(KeyboardKey up, KeyboardKey down) {
+            if (IsKeyDown(up)) {
                 y = y - speed;
             }
-            if (IsKeyDown(KEY_DOWN)) {
+            if (IsKeyDown(down)) {
                 y = y + speed;
             }
             StopAtBorder();
@@ -153,7 +152,6 @@ void Logic() {
             ball.speedX *= -1;
         }
     }
-    
 }
 
 int main() {
@@ -173,17 +171,17 @@ int main() {
     player1.y = screenHeight / 2 - player1.height / 2;
     player1.speed = 9;
 
-    cpu.width = 25;
-    cpu.height = 170;
-    cpu.x = 10;
-    cpu.y = screenHeight / 2 - cpu.height / 2;
-    cpu.speed = 8;
+    // cpu.width = 25;
+    // cpu.height = 170;
+    // cpu.x = 10;
+    // cpu.y = screenHeight / 2 - cpu.height / 2;
+    // cpu.speed = 8;
 
-    player2.width = 25;
-    player2.height = 170;
-    player2.x = 10;
-    player2.y = screenHeight / 2 - player1.height / 2;
-    player2.speed = 9;
+    // player2.width = 25;
+    // player2.height = 170;
+    // player2.x = 10;
+    // player2.y = screenHeight / 2 - player1.height / 2;
+    // player2.speed = 9;
 
     while (WindowShouldClose() == false) {
         BeginDrawing();
@@ -201,12 +199,24 @@ int main() {
                 return 0;
             }
         } else {
+            // update objects
             ball.Update();
-            player1.Update();
+            player1.Update(KEY_UP, KEY_DOWN);
             if (gameState == GAME1P) {
+                cpu.height = 170;
+                cpu.x = 10;
+                cpu.y = screenHeight / 2 - cpu.height / 2;
+                cpu.speed = 8;
+
                 cpu.Update(ball.y);
             } else if (gameState == GAME2P) {
-                player2.Update();
+                player2.width = 25;
+                player2.height = 170;
+                player2.x = 10;
+                player2.y = screenHeight / 2 - player1.height / 2;
+                player2.speed = 9;
+
+                player2.Update(KEY_W, KEY_S);
             }
 
             Logic();
@@ -224,10 +234,8 @@ int main() {
             DrawText(TextFormat("%i", player2Score), screenWidth / 4 - 20, 20, 80, WHITE);
             DrawText(TextFormat("%i", player1Score), 3 * screenWidth / 4 - 20, 20, 80, WHITE);
         }
-
         EndDrawing();
     }
-
     CloseWindow();
     return 0;
 }
