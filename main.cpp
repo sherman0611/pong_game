@@ -16,8 +16,8 @@ class Ball {
     public:
         float x, y, radius, speedX, speedY;
 
-        float resetDelayTimer = 0.5f;
-        float resetDelayDuration = 0.5f;
+        float delayTimer = 0.5;
+        float delayDuration = 0.5;
 
         void Draw() {
             DrawCircle(x, y, radius, WHITE);
@@ -25,8 +25,8 @@ class Ball {
 
         void Update() {
             // countdown
-            if (resetDelayTimer > 0.0f) {
-                resetDelayTimer -= GetFrameTime();
+            if (delayTimer > 0.0f) {
+                delayTimer -= GetFrameTime();
                 return;
             }
 
@@ -48,7 +48,7 @@ class Ball {
             speedX *= speedChoices[GetRandomValue(0, 1)];
             speedY *= speedChoices[GetRandomValue(0, 1)];
 
-            resetDelayTimer = resetDelayDuration;
+            delayTimer = delayDuration;
         }
 };
 
@@ -128,11 +128,11 @@ Button exitButton(300, 60, LIGHTGRAY, "Exit Game", screenWidth / 2 - 150, screen
 
 void DrawTitleScreen() {
     const char *titleText = "Pong Game";
-
     float titleX = screenWidth / 2 - MeasureText(titleText, 60) / 2;
     float titleY = screenHeight / 4;
-    DrawText(titleText, titleX, titleY, 60, WHITE);
 
+    ClearBackground(BLACK);
+    DrawText(titleText, titleX, titleY, 60, WHITE);
     startButton1P.Draw();
     startButton2P.Draw();
     exitButton.Draw();
@@ -199,6 +199,34 @@ int main() {
 
     while (WindowShouldClose() == false) {
         BeginDrawing();
+
+        // return to previous page
+        if (IsKeyPressed(KEY_TAB)) {
+            if (gameState != TITLE) {
+                player1Score = 0;
+                player2Score = 0;
+
+                ball.x = screenWidth / 2;
+                ball.y = screenHeight / 2;
+                ball.delayTimer = 0.5;
+
+                player1.x = screenWidth - player1.width - 10;
+                player1.y = screenHeight / 2 - player1.height / 2;
+
+                if (gameState == GAME1P) {
+                    cpu.x = 10;
+                    cpu.y = screenHeight / 2 - cpu.height / 2;
+                }
+                if (gameState == GAME2P) {
+                    player2.x = 10;
+                    player2.y = screenHeight / 2 - player2.height / 2;
+                }
+                gameState = TITLE;
+            } else {
+                CloseWindow();
+                return 0;
+            }
+        }
 
         if (gameState == TITLE) {
             DrawTitleScreen();
